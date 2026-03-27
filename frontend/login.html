@@ -7,47 +7,50 @@
 </head>
 
 <body>
-<!-- NAVBAR -->
-<div class="navbar">
-    <div class="nav-left">
-        <img src="https://thepristinehotel.com/img/logo.png" alt="Logo">
-        <div class="nav-text">
-            <h2>    The Pristine Hotel</h2>
-            <p>(Hotel Management System)</p>
-        </div>
-    </div>
-</div>
-<div class="container">
-    <div class="login-card">
-
-        <div class="logo">
-            <img src="https://img.freepik.com/premium-vector/hotel-resort-icon-logo-vector-image_284160-19.jpg" alt="Logo">
-        </div>
-
-        <p class="subtitle">Login Portal</p>
-
-        <!-- FIXED FORM -->
-        <form onsubmit="login(event)">
-            <label>Username</label>
-            <input type="text" id="username" placeholder="Username or Email" required>
-
-            <label>Password</label>
-            <div class="password-box">
-                <input type="password" id="password" placeholder="Password" required>
-                <span class="eye" onclick="togglePassword()">👁️</span>
+    <div style="background: url('https://t3.ftcdn.net/jpg/01/27/92/40/360_F_127924087_zzsp6o9KMWkZZ1EjGtDnbpFxjs85ewgU.jpg') no-repeat center center/cover;
+">
+        <!-- NAVBAR -->
+        <div class="navbar">
+            <div class="nav-left">
+                <img src="https://thepristinehotel.com/img/logo.png" alt="Logo">
+                <div class="nav-text">
+                    <h2> The Pristine Hotel</h2>
+                    <p>(Hotel Management System)</p>
+                </div>
             </div>
-
-            <button type="submit">Login</button>
-        </form>
-
-        <div class="links">
-            <button class="register">User Register</button>
-            <button class="forgot">Forgot Password</button>
         </div>
+        <div class="container">
+            <div class="login-card">
 
+                <div class="logo">
+                    <img src="https://thepristinehotel.com/img/logo.png" alt="Logo">
+                </div>
+
+                <p class="subtitle">Login Portal</p>
+
+                <!-- FIXED FORM -->
+                <form onsubmit="login(event)">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Username or Email" required>
+
+                    <label>Password</label>
+                    <div class="password-box">
+                        <input type="password" id="password" placeholder="Password" required>
+                        <span class="eye" onclick="togglePassword()">👁️</span>
+                    </div>
+
+                    <button type="submit">Login</button>
+                </form>
+
+                <div class="links">
+                    <button class="register">User Register</button>
+                    <button class="forgot">Forgot Password</button>
+                </div>
+
+            </div>
+        </div>
     </div>
-</div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
+
 </html>
