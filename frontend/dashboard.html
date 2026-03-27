@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Mobile Toggle Button -->
+<div class="topbar">
+    <button id="menuToggle">☰</button>
+    <h2>Dashboard</h2>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <button class="close-btn" id="closeBtn">✖</button>
+
+    <h3>Hotel Menu</h3>
+    <ul>
+         <li onclick="go('dashboard.html')">🏠 Dashboard</li>
+        <li onclick="go('availability.html')">🛏️ Check Availability</li>
+        <li onclick="go('rooms.html')">🛏️ Rooms</li>
+        <li onclick="go('checkinout.html')">🔑 Check In/Out</li>
+        <li onclick="go('staff.html')">👨‍💼 Staff</li>
+        <li onclick="go('reports.html')">📊 Reports</li>
+        <li onclick="go('logout.html')">🚪 Logout</li>
+    </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+    <h2>Dashboard Overview</h2>
+
+    <div class="cards">
+        <div class="card">Total Rooms: 50</div>
+        <div class="card">Available Rooms: 20</div>
+        <div class="card">Booked Rooms: 30</div>
+        <div class="card">Staff Members: 10</div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

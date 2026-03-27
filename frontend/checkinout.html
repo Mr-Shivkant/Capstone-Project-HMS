@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check In / Out</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+    <button id="menuToggle">☰</button>
+    <h2>Dashboard</h2>
+</div>
+<div class="sidebar">
+    <h3>Menu</h3>
+    <ul>
+        <li onclick="go('dashboard.html')">🏠 Dashboard</li>
+        <li onclick="go('availability.html')">🛏️ Check Availability</li>
+        <li onclick="go('rooms.html')">🛏️ Rooms</li>
+        <li onclick="go('checkinout.html')">🔑 Check In/Out</li>
+        <li onclick="go('staff.html')">👨‍💼 Staff</li>
+        <li onclick="go('reports.html')">📊 Reports</li>
+        <li onclick="go('logout.html')">🚪 Logout</li>
+    </ul>
+</div>
+
+<div class="main">
+
+    <div class="form-card">
+        <h2>🔑 Check In / Check Out</h2>
+
+        <div id="bookingList" class="booking-grid"></div>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
