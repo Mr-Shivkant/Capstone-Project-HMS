@@ -9,10 +9,7 @@ const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://admin:1234@cluster1.cqfmraj.mongodb.net/hms";
 const CLIENT_URL = process.env.CLIENT_URL || "*";
 
-// Only set custom DNS servers for local development if you face Mongoose selection errors.
-if (process.env.NODE_ENV !== "production") {
-    dns.setServers(["1.1.1.1", "8.8.8.8"]);
-}
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 const authRoutes = require("./routes/authRoutes");
 const roomRoutes = require("./routes/roomRoutes");
@@ -73,12 +70,9 @@ app.get("/", (req, res) => {
     res.send("HMS Backend Running 🚀");
 });
 
-// ✅ Export app for Vercel
-module.exports = app;
+
 
 // ✅ Start Server
-if (process.env.NODE_ENV !== "production") {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
-}
+app.listen(5000, () => {
+    console.log("Server running on port 5000");
+});
