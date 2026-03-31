@@ -26,7 +26,7 @@
         <li onclick="go('checkinout.html')">🔑 Check In/Out</li>
         <li onclick="go('staff.html')">👨‍💼 Staff</li>
         <li onclick="go('reports.html')">📊 Reports</li>
-        <li onclick="go('logout.html')">🚪 Logout</li>
+        <li onclick="logout()">🚪 Logout</li>
     </ul>
 </div>
 
@@ -35,10 +35,10 @@
     <h2>Dashboard Overview</h2>
 
     <div class="cards">
-        <div class="card">Total Rooms: 50</div>
-        <div class="card">Available Rooms: 20</div>
-        <div class="card">Booked Rooms: 30</div>
-        <div class="card">Staff Members: 10</div>
+        <div class="card" id="totalRooms"></div>
+    <div class="card" id="availableRooms"></div>
+    <div class="card" id="bookedRooms"></div>
+    <div class="card" id="totalBookings"></div>
     </div>
 </div>
 

@@ -428,6 +428,98 @@ select {
     background: #e74c3c;
     color: white;
 }
+/* Book Button */
+.book-btn {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border: none;
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.book-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Booked Label */
+.booked-label {
+    color: white;
+    font-weight: bold;
+}
+
+/* MODAL */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content input,
+.modal-content select {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.close-modal {
+    float: right;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/* Navigation Buttons */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.form-navigation button {
+    padding: 10px 15px;
+    border: none;
+    background: #4e73df;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {opacity: 0; transform: scale(0.9);}
+    to {opacity: 1; transform: scale(1);}
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .filters {
+        flex-direction: column;
+    }
+
+    .modal-content {
+        width: 95%;
+    }
+}
 
 
 /* Form Card */
