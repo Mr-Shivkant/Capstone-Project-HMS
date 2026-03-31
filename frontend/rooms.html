@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Book Room</title>
+    <title>Rooms Management</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="topbar">
     <button id="menuToggle">☰</button>
-    <h2>Dashboard</h2>
+    <h2>Room Menu</h2>
 </div>
-<div class="sidebar">
+<div class="sidebar" id="sidebar">
+    <button class="close-btn" id="closeBtn">✖</button>
     <h3>Menu</h3>
     <ul>
          <li onclick="go('dashboard.html')">🏠 Dashboard</li>
@@ -18,56 +19,92 @@
         <li onclick="go('checkinout.html')">🔑 Check In/Out</li>
         <li onclick="go('staff.html')">👨‍💼 Staff</li>
         <li onclick="go('reports.html')">📊 Reports</li>
-        <li onclick="go('logout.html')">🚪 Logout</li>
+        <li onclick="logout()">🚪 Logout</li>
     </ul>
 </div>
 
 <div class="main">
-
-    <div class="form-card">
-        <h2>🛎️ Book Room</h2>
-
-        <div class="form-grid">
-
-            <div class="input-group">
-                <label>Customer Name</label>
-                <input type="text" id="name" placeholder="Enter full name">
-            </div>
-
-            <div class="input-group">
-                <label>ID Proof</label>
-                <input type="text" id="id" placeholder="Aadhar / Passport">
-            </div>
-
-            <div class="input-group">
-                <label>Address</label>
-                <input type="text" id="address" placeholder="Enter address">
-            </div>
-
-            <div class="input-group">
-                <label>Phone Number</label>
-                <input type="text" id="phone" placeholder="Enter phone number">
-            </div>
-
-            <div class="input-group full-width">
-                <label>Select Room</label>
-                <select id="room">
-                    <option value="">Choose Room</option>
-                    <option value="101">Room 101</option>
-                    <option value="102">Room 102</option>
-                    <option value="104">Room 104</option>
-                </select>
-            </div>
-
+    <div class="page-header">
+        <div>
+            <h2>Room Management</h2>
+            <p>Manage rooms, cleaning status, availability, and bookings from one dashboard.</p>
         </div>
-
-        <button class="submit-btn" onclick="bookRoom()">Confirm Booking</button>
-
-        <div id="message" class="message"></div>
+        <button class="submit-btn secondary" onclick="openRoomModal()">+ Add Room</button>
     </div>
 
+    <div class="rooms-page">
+        <div class="room-list-panel">
+            <div class="filter-box">
+                <div class="filters">
+                    <div class="input-group">
+                        <label>Room Type</label>
+                        <select id="filterType" onchange="filterRooms()">
+                            <option value="">All</option>
+                            <option value="AC">AC</option>
+                            <option value="Non-AC">Non-AC</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Seater</label>
+                        <select id="filterSeater" onchange="filterRooms()">
+                            <option value="">All</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Status</label>
+                        <select id="filterStatus" onchange="filterRooms()">
+                            <option value="">All</option>
+                            <option value="available">Available</option>
+                            <option value="booked">Booked</option>
+                        </select>
+                    </div>
+                    <button class="search-btn" onclick="loadRooms()">Reset</button>
+                </div>
+            </div>
+            <div class="room-list" id="roomList"></div>
+        </div>
+
+        <div class="room-detail-panel" id="roomDetail">
+            <div class="empty-state">
+                <h3>Select a room to view details</h3>
+                <p>The selected room will display cleaning status, availability, and action options.</p>
+            </div>
+        </div>
+    </div>
 </div>
 
+<div class="modal" id="roomModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeRoomModal()">✖</span>
+        <h3>Add New Room</h3>
+        <input id="newRoomNumber" type="number" placeholder="Room Number">
+        <select id="newRoomType">
+            <option value="AC">AC</option>
+            <option value="Non-AC">Non-AC</option>
+        </select>
+        <input id="newRoomSeater" type="number" placeholder="Seater Count">
+        <select id="newRoomCleaning">
+            <option value="Clean">Clean</option>
+            <option value="Needs Cleaning">Needs Cleaning</option>
+        </select>
+        <button class="submit-btn" onclick="saveRoom()">Save Room</button>
+    </div>
+</div>
+
+<div class="modal" id="bookingModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeBookingModal()">✖</span>
+        <h3 id="bookingModalTitle">Book Room</h3>
+        <div id="bookingStepContent"></div>
+        <div class="form-navigation" id="bookingActions"></div>
+    </div>
+</div>
+
+<script src="config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

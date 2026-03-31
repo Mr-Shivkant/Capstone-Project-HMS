@@ -8,13 +8,11 @@
 </head>
 <body>
 
-<!-- Mobile Toggle Button -->
 <div class="topbar">
     <button id="menuToggle">☰</button>
     <h2>Dashboard</h2>
 </div>
 
-<!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <button class="close-btn" id="closeBtn">✖</button>
 
@@ -30,18 +28,38 @@
     </ul>
 </div>
 
-<!-- Main Content -->
 <div class="main">
     <h2>Dashboard Overview</h2>
 
     <div class="cards">
         <div class="card" id="totalRooms"></div>
-    <div class="card" id="availableRooms"></div>
-    <div class="card" id="bookedRooms"></div>
-    <div class="card" id="totalBookings"></div>
+        <div class="card" id="availableRooms"></div>
+        <div class="card" id="bookedRooms"></div>
+        <div class="card" id="totalBookings"></div>
+    </div>
+
+    <div class="recent-bookings">
+        <h3>Recent Bookings</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Room</th>
+                        <th>Guest</th>
+                        <th>Status</th>
+                        <th>Cleaning</th>
+                    </tr>
+                </thead>
+                <tbody id="recentBookingsBody">
+                    <tr><td colspan="5">Loading recent bookings...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
+<script src="config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

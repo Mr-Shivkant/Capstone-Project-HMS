@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Staff Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+    <button id="menuToggle">☰</button>
+    <h2>Staff Management</h2>
+</div>
+<div class="sidebar" id="sidebar">
+    <button class="close-btn" id="closeBtn">✖</button>
+    <h3>Menu</h3>
+    <ul>
+        <li onclick="go('dashboard.html')">🏠 Dashboard</li>
+        <li onclick="go('availability.html')">🛏️ Check Availability</li>
+        <li onclick="go('rooms.html')">🛏️ Rooms</li>
+        <li onclick="go('checkinout.html')">🔑 Check In/Out</li>
+        <li onclick="go('staff.html')">👨‍💼 Staff</li>
+        <li onclick="go('reports.html')">📊 Reports</li>
+        <li onclick="logout()">🚪 Logout</li>
+    </ul>
+</div>
+
+<div class="main">
+    <div class="page-header">
+        <div>
+            <h2>Staff Directory</h2>
+            <p>Add new team members, remove staff, and export staff details to Excel or PDF.</p>
+        </div>
+        <div class="header-actions">
+            <button class="submit-btn secondary" onclick="exportStaffExcel()">Export Excel</button>
+            <button class="submit-btn secondary" onclick="exportStaffPDF()">Export PDF</button>
+            <button class="submit-btn secondary" onclick="openStaffModal()">+ Add Staff</button>
+        </div>
+    </div>
+
+    <div class="staff-card">
+        <div class="staff-grid">
+            <div class="input-group">
+                <label>Search by name</label>
+                <input id="staffSearch" type="text" placeholder="Search staff" oninput="filterStaff()">
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Father Name</th>
+                        <th>DOB</th>
+                        <th>Gender</th>
+                        <th>Role</th>
+                        <th>ID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="staffTableBody">
+                    <tr><td colspan="7">Loading staff data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="staffModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeStaffModal()">✖</span>
+        <h3>Add New Staff</h3>
+        <div class="input-group"><label>Staff Name</label><input id="staffName" type="text" placeholder="Full name"></div>
+        <div class="input-group"><label>Father Name</label><input id="staffFather" type="text" placeholder="Father's name"></div>
+        <div class="input-group"><label>Date of Birth</label><input id="staffDob" type="date"></div>
+        <div class="input-group"><label>Gender</label><select id="staffGender"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+        <div class="input-group"><label>Staff Type</label><select id="staffType"><option value="Receptionist">Receptionist</option><option value="Concierge">Concierge</option><option value="Night Auditor">Night Auditor</option><option value="Doorkeeper">Doorkeeper</option><option value="Executive Housekeeper">Executive Housekeeper</option></select></div>
+        <div class="input-group"><label>ID Type</label><input id="staffIdType" type="text" placeholder="Aadhar / Passport"></div>
+        <div class="input-group"><label>ID Number</label><input id="staffIdNumber" type="text" placeholder="ID number"></div>
+        <button class="submit-btn" onclick="saveStaff()">Save Staff</button>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema({
-    roomNumber: Number,
+    roomNumber: {
+        type: Number,
+        required: true
+    },
     customers: [
         {
             name: String,
@@ -14,8 +17,11 @@ const bookingSchema = new mongoose.Schema({
     ],
     status: {
         type: String,
+        enum: ["Booked", "Checked-In", "Checked-Out"],
         default: "Booked"
-    }
-});
+    },
+    checkInTime: Date,
+    checkOutTime: Date
+}, { timestamps: true });
 
 module.exports = mongoose.model("Booking", bookingSchema);

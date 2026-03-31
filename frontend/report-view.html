@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Details</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+    <button id="menuToggle">☰</button>
+    <h2>Booking Details</h2>
+</div>
+<div class="sidebar" id="sidebar">
+    <button class="close-btn" id="closeBtn">✖</button>
+    <h3>Menu</h3>
+    <ul>
+        <li onclick="go('dashboard.html')">🏠 Dashboard</li>
+        <li onclick="go('availability.html')">🛏️ Check Availability</li>
+        <li onclick="go('rooms.html')">🛏️ Rooms</li>
+        <li onclick="go('checkinout.html')">🔑 Check In/Out</li>
+        <li onclick="go('staff.html')">👨‍💼 Staff</li>
+        <li onclick="go('reports.html')">📊 Reports</li>
+        <li onclick="logout()">🚪 Logout</li>
+    </ul>
+</div>
+
+<div class="main report-detail-page">
+    <div class="page-header">
+        <div>
+            <h2>Booking Detail View</h2>
+            <p>Print the booking summary with hotel branding and manager signature.</p>
+        </div>
+        <button class="submit-btn secondary" onclick="printReportDetail()">Print Details</button>
+    </div>
+
+    <div class="print-area" id="reportDetailContent">
+        <div class="print-header">
+            <img class="hotel-logo" src="https://thepristinehotel.com/img/logo.png" alt="The Pristine Hotel Logo">
+            <div>
+                <h1>The Pristine Hotel</h1>
+                <p>Premium Hospitality Services</p>
+            </div>
+        </div>
+
+        <div class="detail-summary" id="bookingDetail"></div>
+
+        <div class="signature-block">
+            <div>
+                <p>Manager Signature</p>
+                <div class="signature-line"></div>
+                <p>Hotel Manager</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

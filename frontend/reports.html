@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reports</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+    <button id="menuToggle">☰</button>
+    <h2>Reports</h2>
+</div>
+<div class="sidebar" id="sidebar">
+    <button class="close-btn" id="closeBtn">✖</button>
+    <h3>Menu</h3>
+    <ul>
+        <li onclick="go('dashboard.html')">🏠 Dashboard</li>
+        <li onclick="go('availability.html')">🛏️ Check Availability</li>
+        <li onclick="go('rooms.html')">🛏️ Rooms</li>
+        <li onclick="go('checkinout.html')">🔑 Check In/Out</li>
+        <li onclick="go('staff.html')">👨‍💼 Staff</li>
+        <li onclick="go('reports.html')">📊 Reports</li>
+        <li onclick="logout()">🚪 Logout</li>
+    </ul>
+</div>
+
+<div class="main">
+    <div class="page-header">
+        <div>
+            <h2>Booking Reports</h2>
+            <p>View booked rooms and access detailed booking records for printing.</p>
+        </div>
+    </div>
+
+    <div class="report-card">
+        <div class="staff-grid">
+            <div class="input-group">
+                <label>Search bookings</label>
+                <input id="reportSearch" type="text" placeholder="Search by guest or room" oninput="filterReports()">
+            </div>
+            <div class="header-actions">
+                <button class="submit-btn secondary" onclick="exportReportExcel()">Export Excel</button>
+                <button class="submit-btn secondary" onclick="exportReportPDF()">Export PDF</button>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Room</th>
+                        <th>Guest</th>
+                        <th>Status</th>
+                        <th>Check-In</th>
+                        <th>Check-Out</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                    <tr><td colspan="6">Loading booked room reports...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
