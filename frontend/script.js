@@ -16,7 +16,7 @@ if (protectedPages.includes(currentPage)) {
     }
 }
 
-const API_BASE = window.API_BASE || "https://capstone-project-hms.vercel.app/api";
+const API_BASE = window.API_BASE || "http://localhost:5000/api";
 let rooms = [];
 let selectedRoom = null;
 
