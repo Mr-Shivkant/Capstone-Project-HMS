@@ -70,4 +70,9 @@ app.get("/", (req, res) => {
     res.send("HMS Backend Running 🚀");
 });
 
+// ✅ Start Server
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
+
 module.exports = app;
