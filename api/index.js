@@ -1,103 +1,103 @@
-// api/index.js - Vercel serverless function entry point
-require("dotenv").config();
+// api/index.js - Simple Vercel serverless function
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const dns = require("dns");
-
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
-
-const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://admin:1234@cluster1.cqfmraj.mongodb.net/hms";
-const CLIENT_URL = process.env.CLIENT_URL || "*";
-
-console.log("Environment check:");
-console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
-console.log("CLIENT_URL:", process.env.CLIENT_URL);
 
 const app = express();
 
-// ✅ Middleware - Allow all origins for debugging
-const corsOptions = {
-    origin: "*",  // Allow all origins temporarily
+// Allow all origins for now
+app.use(cors({
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true
-};
-app.use(cors(corsOptions));
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
 
-// ✅ MongoDB Connection
-let mongoConnected = false;
-mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 5000,
-    retryWrites: false
-})
-    .then(() => {
-        mongoConnected = true;
-        console.log("✅ MongoDB Connected");
-    })
-    .catch(err => {
-        console.error("❌ MongoDB Error:", err.message);
-        mongoConnected = false;
-    });
-
-// ✅ Health Check
+// Simple health check
 app.get("/health", (req, res) => {
     res.json({
-        status: "running",
-        mongo: mongoConnected ? "connected" : "disconnected",
-        env: process.env.NODE_ENV || "development",
+        status: "API is working",
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV || "development"
+    });
+});
+
+// Simple test endpoint
+app.get("/test", (req, res) => {
+    res.json({
+        message: "API test successful",
         timestamp: new Date().toISOString()
     });
 });
 
-// ✅ Import Routes
-const authRoutes = require("../backend/routes/authRoutes");
-const roomRoutes = require("../backend/routes/roomRoutes");
-const bookingRoutes = require("../backend/routes/bookingRoutes");
-const staffRoutes = require("../backend/routes/staffRoutes");
-
-// Use shorter paths for API
-app.use("/auth", authRoutes);
-app.use("/rooms", roomRoutes);
-app.use("/bookings", bookingRoutes);
-app.use("/staff", staffRoutes);
-
-// ✅ Dashboard Route
-const Room = require("../backend/models/room");
-const Booking = require("../backend/models/booking");
-
-app.get("/dashboard", async (req, res) => {
+// Login endpoint
+app.post("/auth/login", async (req, res) => {
     try {
-        const totalRooms = await Room.countDocuments();
-        const bookedRooms = await Room.countDocuments({ status: "booked" });
-        const availableRooms = totalRooms - bookedRooms;
-        const totalBookings = await Booking.countDocuments();
+        const { username, password } = req.body;
 
-        const recentBookings = await Booking.find()
-            .sort({ createdAt: -1 })
-            .limit(5)
-            .lean();
+        // Simple hardcoded login for testing
+        if (username === "admin" && password === "admin123") {
+            res.json({
+                success: true,
+                message: "Login successful",
+                user: { username: "admin", role: "admin" }
+            });
+        } else {
+            res.json({
+                success: false,
+                message: "Invalid credentials"
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: error.message
+        });
+    }
+});
 
-        const enrichedBookings = await Promise.all(recentBookings.map(async booking => {
-            const room = await Room.findOne({ number: booking.roomNumber }).lean();
-            return {
-                ...booking,
-                cleaningStatus: room?.cleaningStatus || "Unknown"
-            };
-        }));
-
+// Initialize admin endpoint
+app.post("/auth/init", async (req, res) => {
+    try {
+        // For now, just return success
         res.json({
-            totalRooms,
-            bookedRooms,
-            availableRooms,
-            totalBookings,
-            recentBookings: enrichedBookings
+            success: true,
+            message: "Admin initialized (simplified version)"
         });
     } catch (error) {
-        console.error("Dashboard error:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({
+            success: false,
+            message: "Init error",
+            error: error.message
+        });
     }
+});
+
+// Dashboard endpoint
+app.get("/dashboard", (req, res) => {
+    res.json({
+        totalRooms: 10,
+        bookedRooms: 3,
+        availableRooms: 7,
+        totalBookings: 5,
+        recentBookings: []
+    });
+});
+
+// Rooms endpoint
+app.get("/rooms", (req, res) => {
+    res.json({
+        success: true,
+        rooms: [
+            { number: 101, status: "available", type: "Single" },
+            { number: 102, status: "booked", type: "Double" }
+        ]
+    });
+});
+
+// Export for Vercel
+module.exports = app;
 });
 
 // Error handler
