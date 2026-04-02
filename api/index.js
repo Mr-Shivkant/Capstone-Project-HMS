@@ -10,35 +10,44 @@ dns.setServers(["1.1.1.1", "8.8.8.8"]);
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://admin:1234@cluster1.cqfmraj.mongodb.net/hms";
 const CLIENT_URL = process.env.CLIENT_URL || "*";
 
+console.log("Environment check:");
+console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
+console.log("CLIENT_URL:", process.env.CLIENT_URL);
+
 const app = express();
 
-// ✅ Middleware
+// ✅ Middleware - Allow all origins for debugging
 const corsOptions = {
-    origin: CLIENT_URL === "*" ? "*" : CLIENT_URL,
+    origin: "*",  // Allow all origins temporarily
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
 };
 app.use(cors(corsOptions));
 app.use(express.json());
 
 // ✅ MongoDB Connection
 let mongoConnected = false;
-mongoose.connect(MONGO_URI, { 
+mongoose.connect(MONGO_URI, {
     serverSelectionTimeoutMS: 5000,
-    retryWrites: false 
+    retryWrites: false
 })
-    .then(() => { 
+    .then(() => {
         mongoConnected = true;
-        console.log("✅ MongoDB Connected"); 
+        console.log("✅ MongoDB Connected");
     })
-    .catch(err => console.error("❌ MongoDB Error:", err.message));
+    .catch(err => {
+        console.error("❌ MongoDB Error:", err.message);
+        mongoConnected = false;
+    });
 
 // ✅ Health Check
 app.get("/health", (req, res) => {
-    res.json({ 
+    res.json({
         status: "running",
         mongo: mongoConnected ? "connected" : "disconnected",
-        env: process.env.NODE_ENV || "development"
+        env: process.env.NODE_ENV || "development",
+        timestamp: new Date().toISOString()
     });
 });
 

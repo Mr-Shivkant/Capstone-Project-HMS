@@ -10,6 +10,10 @@
     {
       "src": "frontend/**/*.{html,css,js}",
       "use": "@vercel/static"
+    },
+    {
+      "src": "debug.js",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -18,8 +22,8 @@
       "dest": "/api/index.js"
     },
     {
-      "src": "/static/(.*)",
-      "dest": "/frontend/$1"
+      "src": "/debug.js",
+      "dest": "/debug.js"
     },
     {
       "src": "/(.*)",
