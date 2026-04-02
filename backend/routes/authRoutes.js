@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require("../models/user");
 
 // ✅ Initialize Admin User (run once)
-router.post("/init", async (req, res) => {
+router.post("/init", async (req, res, next) => {
     try {
         const adminExists = await User.findOne({ username: "admin" });
         
@@ -19,27 +19,27 @@ router.post("/init", async (req, res) => {
         await admin.save();
         res.json({ success: true, message: "Admin created: username=admin, password=admin123" });
     } catch (error) {
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 });
 
-router.post("/login", async (req, res) => {
-    console.log("BODY:", req.body); // DEBUG
+router.post("/login", async (req, res, next) => {
+    try {
+        const { username, password } = req.body;
 
-    const { username, password } = req.body;
+        const admin = await User.findOne({ username: "admin" });
 
-    const admin = await User.findOne({ username: "admin" });
+        if (!admin) {
+            return res.json({ success: false, message: "Admin not found. Initialize with POST /api/auth/init" });
+        }
 
-    console.log("ADMIN FROM DB:", admin); // DEBUG
-
-    if (!admin) {
-        return res.json({ success: false, message: "Admin not found. Initialize with POST /api/auth/init" });
-    }
-
-    if (username === admin.username && password === admin.password) {
-        res.json({ success: true, message: "Login Success" });
-    } else {
-        res.json({ success: false, message: "Wrong credentials" });
+        if (username === admin.username && password === admin.password) {
+            res.json({ success: true, message: "Login Success" });
+        } else {
+            res.json({ success: false, message: "Wrong credentials" });
+        }
+    } catch (error) {
+        next(error);
     }
 });
 

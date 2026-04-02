@@ -6,10 +6,15 @@ const app = express();
 const dns = require("dns");
 
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://admin:1234@cluster1.cqfmraj.mongodb.net/hms";
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+    console.error("Missing MONGO_URI environment variable");
+    process.exit(1);
+}
 const CLIENT_URL = process.env.CLIENT_URL || "*";
 
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
+// Optional public DNS fallbacks (if network-level lookup is needed)
+// dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 const authRoutes = require("./routes/authRoutes");
 const roomRoutes = require("./routes/roomRoutes");
@@ -26,6 +31,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
@@ -70,9 +76,29 @@ app.get("/", (req, res) => {
     res.send("HMS Backend Running 🚀");
 });
 
+// 404 handling
+app.use((req, res) => {
+    res.status(404).json({ success: false, message: "Endpoint not found" });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+    console.error("Unhandled error:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+});
+
 // ✅ Start Server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+    console.error("Uncaught Exception:", error);
+    process.exit(1);
 });
 
 module.exports = app;
