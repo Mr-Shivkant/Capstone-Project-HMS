@@ -70,11 +70,4 @@ app.get("/", (req, res) => {
     res.send("HMS Backend Running 🚀");
 });
 
-
-
-// ✅ Start Server
-app.listen(5000, () => {
-    console.log("Server running on port 5000");
-});
-
 module.exports = app;
