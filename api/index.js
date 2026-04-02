@@ -1,16 +1,20 @@
 // api/index.js - Simple Vercel serverless function
 const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
 
 const app = express();
 
 // Allow all origins for now
-app.use(cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}));
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
 app.use(express.json());
 
 // Simple health check
@@ -31,7 +35,7 @@ app.get("/test", (req, res) => {
 });
 
 // Login endpoint
-app.post("/auth/login", async (req, res) => {
+app.post("/auth/login", (req, res) => {
     try {
         const { username, password } = req.body;
 
@@ -58,20 +62,11 @@ app.post("/auth/login", async (req, res) => {
 });
 
 // Initialize admin endpoint
-app.post("/auth/init", async (req, res) => {
-    try {
-        // For now, just return success
-        res.json({
-            success: true,
-            message: "Admin initialized (simplified version)"
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Init error",
-            error: error.message
-        });
-    }
+app.post("/auth/init", (req, res) => {
+    res.json({
+        success: true,
+        message: "Admin initialized (simplified version)"
+    });
 });
 
 // Dashboard endpoint
