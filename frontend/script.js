@@ -26,21 +26,29 @@ async function login(event) {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
-    const res = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username, password })
-    });
+    try {
+        console.log("Logging in with API_BASE:", API_BASE);
+        const res = await fetch(`${API_BASE}/auth/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ username, password })
+        });
 
-    const data = await res.json();
+        console.log("Response status:", res.status);
+        const data = await res.json();
+        console.log("Response data:", data);
 
-    if (data.success) {
-        localStorage.setItem("isAdmin", "true");
-        window.location.href = "dashboard.html";
-    } else {
-        alert(data.message || "Login failed");
+        if (data.success) {
+            localStorage.setItem("isAdmin", "true");
+            window.location.href = "dashboard.html";
+        } else {
+            alert(data.message || "Login failed");
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+        alert("Login error: " + error.message + "\n\nAPI_BASE: " + API_BASE + "\n\nCheck the browser console (F12) for details.");
     }
 }
 

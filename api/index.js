@@ -5,11 +5,10 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dns = require("dns");
 
-const PORT = process.env.PORT || 5000;
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://admin:1234@cluster1.cqfmraj.mongodb.net/hms";
 const CLIENT_URL = process.env.CLIENT_URL || "*";
-
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 const app = express();
 
@@ -22,12 +21,34 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// ✅ MongoDB Connection
+let mongoConnected = false;
+mongoose.connect(MONGO_URI, { 
+    serverSelectionTimeoutMS: 5000,
+    retryWrites: false 
+})
+    .then(() => { 
+        mongoConnected = true;
+        console.log("✅ MongoDB Connected"); 
+    })
+    .catch(err => console.error("❌ MongoDB Error:", err.message));
+
+// ✅ Health Check
+app.get("/health", (req, res) => {
+    res.json({ 
+        status: "running",
+        mongo: mongoConnected ? "connected" : "disconnected",
+        env: process.env.NODE_ENV || "development"
+    });
+});
+
 // ✅ Import Routes
 const authRoutes = require("../backend/routes/authRoutes");
 const roomRoutes = require("../backend/routes/roomRoutes");
 const bookingRoutes = require("../backend/routes/bookingRoutes");
 const staffRoutes = require("../backend/routes/staffRoutes");
 
+// Use shorter paths for API
 app.use("/auth", authRoutes);
 app.use("/rooms", roomRoutes);
 app.use("/bookings", bookingRoutes);
@@ -65,22 +86,16 @@ app.get("/dashboard", async (req, res) => {
             recentBookings: enrichedBookings
         });
     } catch (error) {
+        console.error("Dashboard error:", error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// ✅ Health Check
-app.get("/health", (req, res) => {
-    res.json({ status: "HMS Backend Running 🚀" });
+// Error handler
+app.use((err, req, res, next) => {
+    console.error("API Error:", err);
+    res.status(500).json({ error: err.message });
 });
 
-// ✅ MongoDB Connection
-mongoose.connect(MONGO_URI)
-    .then(() => console.log("MongoDB Connected ✅"))
-    .catch(err => {
-        console.error("MongoDB Connection Error:", err.message);
-        // Don't exit process - Vercel needs it running
-    });
-
-// ✅ Export for Vercel
+// Export for Vercel
 module.exports = app;
