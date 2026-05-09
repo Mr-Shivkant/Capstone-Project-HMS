@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Check Availability</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,13 +14,13 @@
     <button class="close-btn" id="closeBtn">✖</button>
     <h3>Menu</h3>
     <ul>
-        <li onclick="go('dashboard.html')">🏠 Dashboard</li>
-        <li onclick="go('availability.html')">🛏️ Check Availability</li>
-        <li onclick="go('rooms.html')">🛏️ Rooms</li>
-        <li onclick="go('checkinout.html')">🔑 Check In/Out</li>
-        <li onclick="go('staff.html')">👨‍💼 Staff</li>
-        <li onclick="go('reports.html')">📊 Reports</li>
-        <li onclick="go('logout.html')">🚪 Logout</li>
+        <li onclick="go('dashboard.html')"><i class="fas fa-home"></i> Dashboard</li>
+        <li onclick="go('availability.html')"><i class="fas fa-bed"></i> Check Availability</li>
+        <li onclick="go('rooms.html')"><i class="fas fa-calendar-check"></i> Book Room</li>
+        <li onclick="go('checkinout.html')"><i class="fas fa-key"></i> Check In/Out</li>
+        <li onclick="go('staff.html')"><i class="fas fa-users"></i> Staff</li>
+        <li onclick="go('reports.html')"><i class="fas fa-chart-bar"></i> Reports</li>
+        <li onclick="go('logout.html')"><i class="fas fa-sign-out-alt"></i> Logout</li>
     </ul>
 </div>
 
@@ -29,36 +30,32 @@
 
     <!-- Filter Card -->
     <div class="filter-box">
-        <h3>🔍 Filter Rooms</h3>
+        <h3><i class="fas fa-filter"></i> Filter Rooms</h3>
 
         <div class="filters">
-            <div class="input-group">
-                <label>Room Type</label>
-                <select id="filterType">
-                    <option value="">Select Type</option>
-                    <option value="AC">AC</option>
-                    <option value="Non-AC">Non-AC</option>
-                </select>
-            </div>
+            <select id="filterType" class="filter-control">
+                <option value="">Room Type</option>
+                <option value="AC">AC</option>
+                <option value="Non-AC">Non-AC</option>
+            </select>
 
-            <div class="input-group">
-                <label>Seater</label>
-                <select id="filterSeater">
-                    <option value="">Select Seater</option>
-                    <option value="1">1 Seater</option>
-                    <option value="2">2 Seater</option>
-                    <option value="3">3 Seater</option>
-                    <option value="4">4 Seater</option>
-                </select>
-            </div>
+            <select id="filterSeater" class="filter-control">
+                <option value="">Seater</option>
+                <option value="1">1 Seater</option>
+                <option value="2">2 Seater</option>
+                <option value="3">3 Seater</option>
+                <option value="4">4 Seater</option>
+            </select>
 
-            <button class="search-btn" onclick="filterRooms()">Search</button>
+            <input type="text" id="filterRoomNo" class="filter-control" placeholder="Room No.">
+
+            <button class="search-btn" onclick="filterRooms()"><i class="fas fa-search"></i> Search</button>
         </div>
     </div>
 
     <!-- Result Card -->
     <div class="result-box">
-        <h3>📋 Available Rooms</h3>
+        <h3>Available Rooms</h3>
         <div id="roomList" class="room-list"></div>
     </div>
 <!-- Booking Modal -->

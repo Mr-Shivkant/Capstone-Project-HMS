@@ -14,7 +14,7 @@ if (!MONGO_URI) {
 const CLIENT_URL = process.env.CLIENT_URL || "*";
 
 // Optional public DNS fallbacks (if network-level lookup is needed)
-// dns.setServers(["1.1.1.1", "8.8.8.8"]);
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 const authRoutes = require("./routes/authRoutes");
 const roomRoutes = require("./routes/roomRoutes");

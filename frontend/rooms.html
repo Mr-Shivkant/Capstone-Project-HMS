@@ -2,7 +2,241 @@
 <html>
 <head>
     <title>Rooms Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Booking Form Panel Styles */
+        .booking-form-panel {
+            position: fixed;
+            right: 0;
+            top: 60px;
+            width: 380px;
+            height: calc(100vh - 60px);
+            background: linear-gradient(135deg, #f8fbff, #ffffff);
+            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 999;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .booking-form-card {
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .booking-form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #4e73df, #3e5cc4);
+            color: white;
+            border-bottom: 3px solid #2f4ba8;
+            flex-shrink: 0;
+        }
+
+        .booking-form-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-form-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            transition: 0.2s;
+        }
+
+        .close-form-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+        }
+
+        .room-details-display {
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 2px solid #e0e7ff;
+            flex-shrink: 0;
+        }
+
+        .room-info-box {
+            background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4e73df;
+        }
+
+        .room-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-item .label {
+            display: block;
+            font-size: 11px;
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-item .value {
+            display: block;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a2c79;
+        }
+
+        .booking-form-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .form-section {
+            padding: 20px;
+            border-bottom: 1px solid #e0e7ff;
+        }
+
+        .step-indicator {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #4e73df;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-subtitle {
+            margin: 0 0 15px 0;
+            color: #1a2c79;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e7ff;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #ffffff;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4e73df;
+            box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-hint {
+            margin: 8px 0 0 0;
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .booking-form-actions {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            background: white;
+            border-top: 2px solid #e0e7ff;
+            flex-shrink: 0;
+        }
+
+        .booking-form-actions button {
+            flex: 1;
+            padding: 11px 15px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .submit-btn:disabled:hover {
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 1200px) {
+            .booking-form-panel {
+                width: 100%;
+                position: fixed;
+                bottom: 0;
+                right: 0;
+                top: auto;
+                height: auto;
+                max-height: 80vh;
+                border-radius: 20px 20px 0 0;
+            }
+            .room-info-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .booking-form-panel {
+                width: 100%;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="topbar">
@@ -13,13 +247,13 @@
     <button class="close-btn" id="closeBtn">✖</button>
     <h3>Menu</h3>
     <ul>
-         <li onclick="go('dashboard.html')">🏠 Dashboard</li>
-        <li onclick="go('availability.html')">🛏️ Check Availability</li>
-        <li onclick="go('rooms.html')">🛏️ Rooms</li>
-        <li onclick="go('checkinout.html')">🔑 Check In/Out</li>
-        <li onclick="go('staff.html')">👨‍💼 Staff</li>
-        <li onclick="go('reports.html')">📊 Reports</li>
-        <li onclick="logout()">🚪 Logout</li>
+         <li onclick="go('dashboard.html')"><i class="fas fa-home"></i> Dashboard</li>
+        <li onclick="go('availability.html')"><i class="fas fa-bed"></i> Check Availability</li>
+        <li onclick="go('rooms.html')"><i class="fas fa-calendar-check"></i> Book Room</li>
+        <li onclick="go('checkinout.html')"><i class="fas fa-key"></i> Check In/Out</li>
+        <li onclick="go('staff.html')"><i class="fas fa-users"></i> Staff</li>
+        <li onclick="go('reports.html')"><i class="fas fa-chart-bar"></i> Reports</li>
+        <li onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</li>
     </ul>
 </div>
 
@@ -32,37 +266,31 @@
         <button class="submit-btn secondary" onclick="openRoomModal()">+ Add Room</button>
     </div>
 
+    <div id="pageMessage" class="page-message" style="display:none;"></div>
+
     <div class="rooms-page">
         <div class="room-list-panel">
             <div class="filter-box">
                 <div class="filters">
-                    <div class="input-group">
-                        <label>Room Type</label>
-                        <select id="filterType" onchange="filterRooms()">
-                            <option value="">All</option>
-                            <option value="AC">AC</option>
-                            <option value="Non-AC">Non-AC</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Seater</label>
-                        <select id="filterSeater" onchange="filterRooms()">
-                            <option value="">All</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Status</label>
-                        <select id="filterStatus" onchange="filterRooms()">
-                            <option value="">All</option>
-                            <option value="available">Available</option>
-                            <option value="booked">Booked</option>
-                        </select>
-                    </div>
-                    <button class="search-btn" onclick="loadRooms()">Reset</button>
+                    <select id="filterType" class="filter-control" title="Room Type" onchange="loadRooms()">
+                        <option value="">Room Type</option>
+                        <option value="AC">AC</option>
+                        <option value="Non-AC">Non-AC</option>
+                    </select>
+                    <select id="filterSeater" class="filter-control" title="Seater" onchange="loadRooms()">
+                        <option value="">Seater</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                    <select id="filterStatus" class="filter-control" title="Status" onchange="loadRooms()">
+                        <option value="">Status</option>
+                        <option value="available">Available</option>
+                        <option value="booked">Booked</option>
+                    </select>
+                    <input id="filterRoomNo" class="filter-control" type="text" placeholder="Room No." oninput="loadRooms()" title="Room No.">
+                    <button class="search-btn" onclick="resetRoomFilters()">Reset</button>
                 </div>
             </div>
             <div class="room-list" id="roomList"></div>
@@ -74,33 +302,70 @@
                 <p>The selected room will display cleaning status, availability, and action options.</p>
             </div>
         </div>
+
+        <!-- Inline Booking Form -->
+        <div id="bookingFormPanel" class="booking-form-panel" style="display:none;">
+            <div class="booking-form-card">
+                <div class="booking-form-header">
+                    <h3 id="bookingFormTitle">Book Room</h3>
+                    <button class="close-form-btn" onclick="closeBookingForm()">✕</button>
+                </div>
+
+                <!-- Room Details Display -->
+                <div id="roomDetailsDisplay" class="room-details-display">
+                    <!-- Will be populated by JS -->
+                </div>
+
+                <!-- Booking Form Content -->
+                <div id="bookingFormContent" class="booking-form-content">
+                    <!-- Will be populated by JS -->
+                </div>
+
+                <!-- Form Actions -->
+                <div class="booking-form-actions" id="bookingFormActions">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="modal" id="roomModal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeRoomModal()">✖</span>
-        <h3>Add New Room</h3>
-        <input id="newRoomNumber" type="number" placeholder="Room Number">
-        <select id="newRoomType">
-            <option value="AC">AC</option>
-            <option value="Non-AC">Non-AC</option>
-        </select>
-        <input id="newRoomSeater" type="number" placeholder="Seater Count">
-        <select id="newRoomCleaning">
-            <option value="Clean">Clean</option>
-            <option value="Needs Cleaning">Needs Cleaning</option>
-        </select>
-        <button class="submit-btn" onclick="saveRoom()">Save Room</button>
-    </div>
-</div>
-
-<div class="modal" id="bookingModal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeBookingModal()">✖</span>
-        <h3 id="bookingModalTitle">Book Room</h3>
-        <div id="bookingStepContent"></div>
-        <div class="form-navigation" id="bookingActions"></div>
+<div id="addRoomPanel" class="booking-form-panel" style="display:none;">
+    <div class="booking-form-card">
+        <div class="booking-form-header">
+            <h3>Add New Room</h3>
+            <button class="close-form-btn" onclick="closeRoomModal()">✕</button>
+        </div>
+        <div class="booking-form-content">
+            <div class="form-section">
+                <div class="form-group">
+                    <label class="form-label">Room Number</label>
+                    <input id="newRoomNumber" class="form-input" type="number" placeholder="Room Number">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Room Type</label>
+                    <select id="newRoomType" class="form-input">
+                        <option value="AC">AC</option>
+                        <option value="Non-AC">Non-AC</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Seater Count</label>
+                    <input id="newRoomSeater" class="form-input" type="number" placeholder="Seater Count">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cleaning Status</label>
+                    <select id="newRoomCleaning" class="form-input">
+                        <option value="Clean">Clean</option>
+                        <option value="Needs Cleaning">Needs Cleaning</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="booking-form-actions">
+            <button class="submit-btn secondary" onclick="closeRoomModal()" type="button">Cancel</button>
+            <button class="submit-btn primary" onclick="saveRoom()" type="button">Save Room</button>
+        </div>
     </div>
 </div>
 

@@ -12,6 +12,17 @@ router.get("/", async (req, res, next) => {
     }
 });
 
+// Get staff by ID
+router.get("/:id", async (req, res, next) => {
+    try {
+        const staff = await Staff.findById(req.params.id);
+        if (!staff) return res.status(404).json({ message: "Staff not found" });
+        res.json(staff);
+    } catch (error) {
+        next(error);
+    }
+});
+
 // Add staff
 router.post("/", async (req, res, next) => {
     try {

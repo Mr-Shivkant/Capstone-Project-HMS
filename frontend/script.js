@@ -19,6 +19,21 @@ if (protectedPages.includes(currentPage)) {
 const API_BASE = window.API_BASE || "http://localhost:5000/api";
 let rooms = [];
 let selectedRoom = null;
+let pageMessageTimeout = null;
+
+function showPageMessage(message, type = "success") {
+    const el = document.getElementById("pageMessage");
+    if (!el) return;
+
+    el.textContent = message;
+    el.className = `page-message message-${type}`;
+    el.style.display = "block";
+
+    window.clearTimeout(pageMessageTimeout);
+    pageMessageTimeout = window.setTimeout(() => {
+        el.style.display = "none";
+    }, 5000);
+}
 
 async function login(event) {
     event.preventDefault();
@@ -113,12 +128,20 @@ async function loadRooms() {
     const type = document.getElementById("filterType")?.value || document.getElementById("type")?.value || "";
     const seater = document.getElementById("filterSeater")?.value || document.getElementById("seater")?.value || "";
     const status = document.getElementById("filterStatus")?.value || document.getElementById("status")?.value || "";
+    const roomNo = document.getElementById("filterRoomNo")?.value || "";
 
     const filtered = rooms.filter(room => {
         const matchesType = !type || room.type === type;
         const matchesSeater = !seater || room.seater === Number(seater);
-        const matchesStatus = !status || room.status === status;
-        return matchesType && matchesSeater && matchesStatus;
+        
+        // On availability page, only show available rooms
+        const isAvailabilityPage = window.location.pathname.includes("availability.html");
+        const matchesStatus = isAvailabilityPage 
+            ? room.status === "available"
+            : !status || room.status === status;
+        
+        const matchesRoomNo = !roomNo || room.number.toString().includes(roomNo);
+        return matchesType && matchesSeater && matchesStatus && matchesRoomNo;
     });
 
     renderRoomCards(filtered);
@@ -183,7 +206,7 @@ function showRoomDetail(room) {
             <div class="detail-row"><span>Status</span><span class="status-pill ${room.status}">${room.status === "available" ? "Available" : "Booked"}</span></div>
             <div class="detail-row"><span>Cleaning</span><span class="status-pill ${room.cleaningStatus === "Clean" ? "clean" : "dirty"}">${room.cleaningStatus}</span></div>
             <div class="detail-actions">
-                <button class="submit-btn" onclick="openBookingModal()" ${room.status !== "available" ? "disabled" : ""}>Book Room</button>
+                <button class="submit-btn" onclick="openBookingForm()" ${room.status !== "available" ? "disabled" : ""}>📖 Book Room</button>
                 <button class="submit-btn secondary" onclick="toggleCleaningStatus()">${room.cleaningStatus === "Clean" ? "Mark Needs Cleaning" : "Mark Clean"}</button>
                 <button class="submit-btn danger" onclick="removeSelectedRoom()">Remove Room</button>
             </div>
@@ -193,11 +216,12 @@ function showRoomDetail(room) {
 
 function openRoomModal() {
     resetRoomForm();
-    document.getElementById("roomModal").style.display = "flex";
+    document.getElementById("bookingFormPanel").style.display = "none";
+    document.getElementById("addRoomPanel").style.display = "block";
 }
 
 function closeRoomModal() {
-    document.getElementById("roomModal").style.display = "none";
+    document.getElementById("addRoomPanel").style.display = "none";
 }
 
 function resetRoomForm() {
@@ -207,6 +231,14 @@ function resetRoomForm() {
     document.getElementById("newRoomCleaning").value = "Clean";
 }
 
+function resetRoomFilters() {
+    document.getElementById("filterType").value = "";
+    document.getElementById("filterSeater").value = "";
+    document.getElementById("filterStatus").value = "";
+    document.getElementById("filterRoomNo").value = "";
+    loadRooms();
+}
+
 async function saveRoom() {
     const number = Number(document.getElementById("newRoomNumber").value);
     const type = document.getElementById("newRoomType").value;
@@ -214,7 +246,7 @@ async function saveRoom() {
     const cleaningStatus = document.getElementById("newRoomCleaning").value;
 
     if (!number || !type || !seater) {
-        alert("Please fill in all room details.");
+        showPageMessage("Please fill in all room details.", "error");
         return;
     }
 
@@ -228,12 +260,12 @@ async function saveRoom() {
             body: JSON.stringify({ number, type, seater, cleaningStatus, status: "available" })
         });
 
-        alert("Room added successfully.");
         closeRoomModal();
         await loadRooms();
+        showPageMessage("Room added successfully.");
     } catch (error) {
         console.error("Add room failed:", error);
-        alert(error.message || "Unable to add room.");
+        showPageMessage(error.message || "Unable to add room.", "error");
     }
 }
 
@@ -263,8 +295,22 @@ function formatDateTime(value) {
     return date.toLocaleString();
 }
 
+let checkInOutBookings = [];
+
 async function loadBookings() {
-    const bookings = await fetchJson("/bookings");
+    checkInOutBookings = await fetchJson("/bookings");
+    const query = document.getElementById("bookingSearch")?.value.toLowerCase() || "";
+    if (query) {
+        const filtered = checkInOutBookings.filter(booking =>
+            String(booking.roomNumber).includes(query)
+        );
+        renderCheckInOutBookings(filtered);
+    } else {
+        renderCheckInOutBookings(checkInOutBookings);
+    }
+}
+
+function renderCheckInOutBookings(bookings) {
     const bookingList = document.getElementById("bookingList");
     if (!bookingList) return;
 
@@ -295,6 +341,52 @@ async function loadBookings() {
             </div>
         `;
     }).join("");
+}
+
+function filterBookings() {
+    const query = document.getElementById("bookingSearch")?.value.toLowerCase() || "";
+    const filtered = checkInOutBookings.filter(booking =>
+        String(booking.roomNumber).includes(query)
+    );
+    renderCheckInOutBookings(filtered);
+}
+
+function printBookings() {
+    if (!checkInOutBookings.length) {
+        alert("No bookings to print.");
+        return;
+    }
+
+    const printWindow = document.createElement("div");
+    printWindow.style.padding = "20px";
+    printWindow.innerHTML = `
+        <h2 style="text-align: center;">Check-In / Check-Out Report</h2>
+        <p style="text-align: center;">Generated on ${new Date().toLocaleString()}</p>
+        <table border="1" cellspacing="0" cellpadding="8" style="width:100%; border-collapse: collapse; font-size: 12px; margin-top: 20px;">
+            <thead>
+                <tr style="background: #f0f0f0;">
+                    <th>Room Number</th>
+                    <th>Guest Name</th>
+                    <th>Status</th>
+                    <th>Check-In Time</th>
+                    <th>Check-Out Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${checkInOutBookings.map(booking => `
+                    <tr>
+                        <td>${booking.roomNumber}</td>
+                        <td>${booking.customers?.[0]?.name || "Guest"}</td>
+                        <td>${booking.status}</td>
+                        <td>${formatDateTime(booking.checkInTime)}</td>
+                        <td>${formatDateTime(booking.checkOutTime)}</td>
+                    </tr>
+                `).join("")}
+            </tbody>
+        </table>
+    `;
+
+    html2pdf().set({ margin: 10, filename: `checkin-checkout-report-${new Date().toISOString().slice(0,10)}.pdf`, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(printWindow).save();
 }
 
 let reportBookings = [];
@@ -463,8 +555,161 @@ async function loadReportDetail() {
     }
 }
 
-function printReportDetail() {
-    window.print();
+async function loadStaffDetail() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const container = document.getElementById("staffDetail");
+    if (!container) return;
+
+    if (!id) {
+        container.innerHTML = `
+            <div class="error-state">
+                <h3>Staff details unavailable</h3>
+                <p>No staff ID was provided in the URL.</p>
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        const staff = await fetchJson(`/staff/${id}`);
+        const createdDate = staff.createdAt ? new Date(staff.createdAt).toLocaleDateString() : "N/A";
+        
+        container.innerHTML = `
+            <div class="staff-detail-header">
+                <div class="staff-basic-info">
+                    <h3>${staff.name}</h3>
+                    <p class="staff-role">${staff.staffType}</p>
+                    <p class="staff-id">Employee ID: ${staff._id.slice(-6).toUpperCase()}</p>
+                </div>
+            </div>
+
+            <div class="staff-detail-grid">
+                <div class="detail-section">
+                    <h4>Personal Information</h4>
+                    <div class="detail-row">
+                        <span>Full Name</span>
+                        <span>${staff.name}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Father Name</span>
+                        <span>${staff.fatherName || "Not provided"}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Date of Birth</span>
+                        <span>${staff.dob ? new Date(staff.dob).toLocaleDateString() : "Not provided"}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Gender</span>
+                        <span>${staff.gender}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Employment Details</h4>
+                    <div class="detail-row">
+                        <span>Staff Type</span>
+                        <span>${staff.staffType}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Employee ID</span>
+                        <span>${staff._id.slice(-6).toUpperCase()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Date Joined</span>
+                        <span>${createdDate}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Identification</h4>
+                    <div class="detail-row">
+                        <span>ID Type</span>
+                        <span>${staff.idType || "Not provided"}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>ID Number</span>
+                        <span>${staff.idNumber || "Not provided"}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error("Failed to load staff detail:", error);
+        container.innerHTML = `
+            <div class="error-state">
+                <h3>Error loading staff details</h3>
+                <p>${error.message || "Unable to fetch staff information."}</p>
+            </div>
+        `;
+    }
+}
+
+function printStaffDetail() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (!id) return;
+
+    // Get the staff data from the page
+    const staffName = document.querySelector('.staff-basic-info h3')?.textContent || 'Staff Member';
+    const staffRole = document.querySelector('.staff-role')?.textContent || '';
+    const staffId = document.querySelector('.staff-id')?.textContent || '';
+
+    const printWindow = document.createElement("div");
+    printWindow.style.padding = "20px";
+    printWindow.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px solid #4e73df; padding-bottom: 15px;">
+            <h1 style="margin: 8px 0; color: #1a2c79; font-size: 24px;">The Pristine Hotel</h1>
+            <p style="margin: 3px 0; color: #666; font-size: 12px;">Employee Details Report</p>
+            <p style="margin: 3px 0; color: #999; font-size: 10px;">Generated: ${new Date().toLocaleString()}</p>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <div style="background: #e3f2fd; padding: 12px; border-left: 4px solid #4e73df;">
+                <h2 style="margin: 0 0 5px 0; color: #1a2c79; font-size: 18px;">${staffName}</h2>
+                <p style="margin: 2px 0; color: #4e73df; font-weight: bold; font-size: 13px;">${staffRole}</p>
+                <p style="margin: 2px 0; color: #666; font-size: 11px;">${staffId}</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background: #f8f9fa; padding: 12px; border: 1px solid #ddd;">
+                <h3 style="margin: 0 0 10px 0; color: #1a2c79; font-size: 12px; border-bottom: 2px solid #4e73df; padding-bottom: 5px;">Personal Information</h3>
+                ${Array.from(document.querySelectorAll('.detail-section')[0]?.querySelectorAll('.detail-row') || []).map(row => {
+                    const spans = row.querySelectorAll('span');
+                    return `<p style="margin: 5px 0; font-size: 10px;"><strong>${spans[0]?.textContent}:</strong> ${spans[1]?.textContent}</p>`;
+                }).join('')}
+            </div>
+
+            <div style="background: #f8f9fa; padding: 12px; border: 1px solid #ddd;">
+                <h3 style="margin: 0 0 10px 0; color: #1a2c79; font-size: 12px; border-bottom: 2px solid #4e73df; padding-bottom: 5px;">Employment Details</h3>
+                ${Array.from(document.querySelectorAll('.detail-section')[1]?.querySelectorAll('.detail-row') || []).map(row => {
+                    const spans = row.querySelectorAll('span');
+                    return `<p style="margin: 5px 0; font-size: 10px;"><strong>${spans[0]?.textContent}:</strong> ${spans[1]?.textContent}</p>`;
+                }).join('')}
+            </div>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 12px; border: 1px solid #ddd; margin-top: 12px;">
+            <h3 style="margin: 0 0 10px 0; color: #1a2c79; font-size: 12px; border-bottom: 2px solid #4e73df; padding-bottom: 5px;">Identification Details</h3>
+            ${Array.from(document.querySelectorAll('.detail-section')[2]?.querySelectorAll('.detail-row') || []).map(row => {
+                const spans = row.querySelectorAll('span');
+                return `<p style="margin: 5px 0; font-size: 10px;"><strong>${spans[0]?.textContent}:</strong> ${spans[1]?.textContent}</p>`;
+            }).join('')}
+        </div>
+
+        <div style="margin-top: 15px; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #ddd; padding-top: 10px;">
+            <p style="margin: 0;">This is an official employee record from The Pristine Hotel Management System.</p>
+            <p style="margin: 0;">For inquiries, please contact the management office.</p>
+        </div>
+    `;
+
+    html2pdf().set({ 
+        margin: 8, 
+        filename: `employee-detail-${staffName.replace(/\s+/g, '-')}-${new Date().toISOString().slice(0,10)}.pdf`, 
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        html2canvas: { scale: 2, useCORS: true }
+    }).from(printWindow).save();
 }
 
 async function checkInBooking(id) {
@@ -500,9 +745,11 @@ async function checkOutBooking(id) {
 }
 
 let staffRecords = [];
+let filteredStaffRecords = [];
 
 async function loadStaff() {
     staffRecords = await fetchJson("/staff");
+    filteredStaffRecords = [...staffRecords];
     renderStaffTable(staffRecords);
 }
 
@@ -511,49 +758,60 @@ function renderStaffTable(staffList) {
     if (!body) return;
 
     if (!staffList.length) {
-        body.innerHTML = `<tr><td colspan="7">No staff members found.</td></tr>`;
+        body.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px;">No staff members found.</td></tr>`;
         return;
     }
 
     body.innerHTML = staffList.map(member => `
         <tr>
-            <td>${member.name}</td>
+            <td><strong>${member.name}</strong></td>
             <td>${member.fatherName || "-"}</td>
             <td>${member.dob ? new Date(member.dob).toLocaleDateString() : "-"}</td>
             <td>${member.gender}</td>
-            <td>${member.staffType}</td>
+            <td><span class="badge">${member.staffType}</span></td>
             <td>${member.idType || "-"} / ${member.idNumber || "-"}</td>
-            <td><button class="submit-btn danger" onclick="removeStaff('${member._id}')">Remove</button></td>
+            <td>
+                <button class="submit-btn" style="padding: 6px 12px; font-size: 12px;" onclick="viewStaffDetails('${member._id}')">View</button>
+                <button class="submit-btn danger" style="padding: 6px 12px; font-size: 12px;" onclick="removeStaff('${member._id}')">Delete</button>
+            </td>
         </tr>
     `).join("");
 }
 
 function filterStaff() {
     const query = document.getElementById("staffSearch")?.value.toLowerCase() || "";
-    const filtered = staffRecords.filter(member =>
+    filteredStaffRecords = staffRecords.filter(member =>
         member.name.toLowerCase().includes(query) ||
         (member.staffType || "").toLowerCase().includes(query) ||
         (member.idNumber || "").toLowerCase().includes(query)
     );
-    renderStaffTable(filtered);
+    renderStaffTable(filteredStaffRecords);
 }
 
-function openStaffModal() {
+function toggleStaffForm() {
+    const formContainer = document.getElementById("staffFormContainer");
+    if (formContainer.style.display === "none") {
+        formContainer.style.display = "block";
+        resetStaffForm();
+        document.getElementById("staffName").focus();
+    } else {
+        formContainer.style.display = "none";
+    }
+}
+
+function resetStaffForm() {
     document.getElementById("staffName").value = "";
     document.getElementById("staffFather").value = "";
     document.getElementById("staffDob").value = "";
     document.getElementById("staffGender").value = "Male";
-    document.getElementById("staffType").value = "Receptionist";
+    document.getElementById("staffType").value = "";
     document.getElementById("staffIdType").value = "";
     document.getElementById("staffIdNumber").value = "";
-    document.getElementById("staffModal").style.display = "flex";
 }
 
-function closeStaffModal() {
-    document.getElementById("staffModal").style.display = "none";
-}
-
-async function saveStaff() {
+async function saveStaff(event) {
+    event.preventDefault();
+    
     const name = document.getElementById("staffName").value.trim();
     const fatherName = document.getElementById("staffFather").value.trim();
     const dob = document.getElementById("staffDob").value;
@@ -573,7 +831,7 @@ async function saveStaff() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, fatherName, dob, gender, staffType, idType, idNumber })
         });
-        closeStaffModal();
+        toggleStaffForm();
         await loadStaff();
         alert("Staff member added successfully.");
     } catch (error) {
@@ -583,9 +841,67 @@ async function saveStaff() {
 }
 
 async function removeStaff(id) {
-    if (!confirm("Remove this staff member?")) return;
-    await fetchJson(`/staff/${id}`, { method: "DELETE" });
-    await loadStaff();
+    if (!confirm("Are you sure you want to remove this staff member?")) return;
+    try {
+        await fetchJson(`/staff/${id}`, { method: "DELETE" });
+        await loadStaff();
+        alert("Staff member removed successfully.");
+    } catch (error) {
+        console.error("Remove staff failed:", error);
+        alert(error.message || "Unable to remove staff.");
+    }
+}
+
+function viewStaffDetails(id) {
+    window.location.href = `staff-view.html?id=${id}`;
+}
+
+function printStaffDetails() {
+    if (!staffRecords.length) {
+        alert("No staff records to print.");
+        return;
+    }
+
+    const printWindow = document.createElement("div");
+    printWindow.style.padding = "15px";
+    printWindow.innerHTML = `
+        <div style="text-align: center; margin-bottom: 15px;">
+            <h2 style="margin: 0 0 5px 0; color: #1a2c79;">Staff Directory</h2>
+            <p style="margin: 0; color: #666; font-size: 12px;">Generated on ${new Date().toLocaleString()}</p>
+        </div>
+        <table border="1" cellspacing="0" cellpadding="5" style="width:100%; border-collapse: collapse; font-size: 10px;">
+            <thead>
+                <tr style="background: #4e73df; color: white;">
+                    <th style="padding: 8px;">Name</th>
+                    <th style="padding: 8px;">Father Name</th>
+                    <th style="padding: 8px;">DOB</th>
+                    <th style="padding: 8px;">Gender</th>
+                    <th style="padding: 8px;">Role</th>
+                    <th style="padding: 8px;">ID Type</th>
+                    <th style="padding: 8px;">ID Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${staffRecords.map(member => `
+                    <tr>
+                        <td style="padding: 6px;">${member.name}</td>
+                        <td style="padding: 6px;">${member.fatherName || "-"}</td>
+                        <td style="padding: 6px;">${member.dob ? new Date(member.dob).toLocaleDateString() : "-"}</td>
+                        <td style="padding: 6px;">${member.gender}</td>
+                        <td style="padding: 6px;">${member.staffType}</td>
+                        <td style="padding: 6px;">${member.idType || "-"}</td>
+                        <td style="padding: 6px;">${member.idNumber || "-"}</td>
+                    </tr>
+                `).join("")}
+            </tbody>
+        </table>
+    `;
+
+    html2pdf().set({ 
+        margin: 8, 
+        filename: `staff-directory-${new Date().toISOString().slice(0,10)}.pdf`, 
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } 
+    }).from(printWindow).save();
 }
 
 function exportStaffExcel() {
@@ -619,50 +935,11 @@ function exportStaffExcel() {
     URL.revokeObjectURL(url);
 }
 
-function exportStaffPDF() {
-    if (!staffRecords.length) {
-        alert("No staff records to export.");
-        return;
-    }
-    const printWindow = document.createElement("div");
-    printWindow.style.padding = "20px";
-    printWindow.innerHTML = `
-        <h2>Staff Directory</h2>
-        <table border="1" cellspacing="0" cellpadding="8" style="width:100%; border-collapse: collapse; font-size: 12px;">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Father Name</th>
-                    <th>DOB</th>
-                    <th>Gender</th>
-                    <th>Staff Type</th>
-                    <th>ID Type</th>
-                    <th>ID Number</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${staffRecords.map(member => `
-                    <tr>
-                        <td>${member.name}</td>
-                        <td>${member.fatherName || ""}</td>
-                        <td>${member.dob ? new Date(member.dob).toLocaleDateString() : ""}</td>
-                        <td>${member.gender}</td>
-                        <td>${member.staffType}</td>
-                        <td>${member.idType || ""}</td>
-                        <td>${member.idNumber || ""}</td>
-                    </tr>
-                `).join("")}
-            </tbody>
-        </table>
-    `;
-    html2pdf().set({ margin: 10, filename: `staff-list-${new Date().toISOString().slice(0,10)}.pdf`, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(printWindow).save();
-}
-
 let bookingStep = 0;
 let bookingCustomerCount = 1;
 let bookingCustomers = [];
 
-function openBookingModal() {
+function openBookingForm() {
     if (!selectedRoom || selectedRoom.status !== "available") {
         alert("Please select an available room first.");
         return;
@@ -671,93 +948,136 @@ function openBookingModal() {
     bookingStep = 0;
     bookingCustomerCount = 1;
     bookingCustomers = [];
-    document.getElementById("bookingModalTitle").innerText = `Book Room ${selectedRoom.number}`;
-    renderBookingStep();
-    document.getElementById("bookingModal").style.display = "flex";
+    
+    document.getElementById("bookingFormTitle").innerText = `Book Room ${selectedRoom.number}`;
+    renderBookingFormStep();
+    document.getElementById("addRoomPanel").style.display = "none";
+    document.getElementById("bookingFormPanel").style.display = "block";
+    document.getElementById("roomDetail").style.display = "none";
 }
 
-function closeBookingModal() {
-    document.getElementById("bookingModal").style.display = "none";
+function closeBookingForm() {
+    document.getElementById("bookingFormPanel").style.display = "none";
+    document.getElementById("roomDetail").style.display = "block";
 }
 
-function renderBookingStep() {
-    const container = document.getElementById("bookingStepContent");
-    const actions = document.getElementById("bookingActions");
-    if (!container || !actions) return;
+function renderBookingFormStep() {
+    const contentContainer = document.getElementById("bookingFormContent");
+    const detailsContainer = document.getElementById("roomDetailsDisplay");
+    const actions = document.getElementById("bookingFormActions");
+    if (!contentContainer || !detailsContainer || !actions) return;
+
+    // Display room details at the top
+    if (selectedRoom) {
+        detailsContainer.innerHTML = `
+            <div class="room-info-box">
+                <div class="room-info-grid">
+                    <div class="info-item">
+                        <span class="label">Room Number</span>
+                        <span class="value">#${selectedRoom.number}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Type</span>
+                        <span class="value">${selectedRoom.type}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Capacity</span>
+                        <span class="value">${selectedRoom.seater} Seater</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     if (bookingStep === 0) {
-        container.innerHTML = `
-            <div class="input-group">
-                <label>Number of customers</label>
-                <select id="customerCount">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
+        contentContainer.innerHTML = `
+            <div class="form-section">
+                <label class="form-label">Number of Guests</label>
+                <select id="customerCount" class="form-input">
+                    <option value="1">1 Guest</option>
+                    <option value="2">2 Guests</option>
+                    <option value="3">3 Guests</option>
+                    <option value="4">4 Guests</option>
                 </select>
+                <p class="form-hint">How many guest details would you like to enter?</p>
             </div>
-            <p>Select how many guest details you want to enter.</p>
         `;
 
         actions.innerHTML = `
-            <button class="submit-btn secondary" onclick="closeBookingModal()" type="button">Cancel</button>
-            <button class="submit-btn" onclick="bookingNext()" type="button">Next</button>
+            <button class="submit-btn secondary" onclick="closeBookingForm()" type="button">✕ Cancel</button>
+            <button class="submit-btn primary" onclick="bookingFormNext()" type="button">Next →</button>
         `;
         return;
     }
 
     const current = bookingCustomers[bookingStep - 1] || {};
     const stepLabel = `Guest ${bookingStep} of ${bookingCustomerCount}`;
-    container.innerHTML = `
-        <div class="input-group">
-            <label>${stepLabel} Name</label>
-            <input id="customerName" type="text" value="${current.name || ""}" placeholder="Full Name">
-        </div>
-        <div class="input-group">
-            <label>Age</label>
-            <input id="customerAge" type="number" value="${current.age || ""}" placeholder="Age">
-        </div>
-        <div class="input-group">
-            <label>Gender</label>
-            <select id="customerGender">
-                <option value="Male" ${current.gender === "Male" ? "selected" : ""}>Male</option>
-                <option value="Female" ${current.gender === "Female" ? "selected" : ""}>Female</option>
-                <option value="Other" ${current.gender === "Other" ? "selected" : ""}>Other</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>Address</label>
-            <input id="customerAddress" type="text" value="${current.address || ""}" placeholder="Address">
-        </div>
-        <div class="input-group">
-            <label>ID Proof Type</label>
-            <input id="customerIdType" type="text" value="${current.idType || ""}" placeholder="Aadhar / Passport">
-        </div>
-        <div class="input-group">
-            <label>ID Number</label>
-            <input id="customerIdNumber" type="text" value="${current.idNumber || ""}" placeholder="ID Number">
+    contentContainer.innerHTML = `
+        <div class="form-section">
+            <div class="step-indicator">Step ${bookingStep} of ${bookingCustomerCount}</div>
+            <h4 class="form-subtitle">${stepLabel} Information</h4>
+            
+            <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input id="customerName" class="form-input" type="text" value="${current.name || ""}" placeholder="Enter full name">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Age *</label>
+                    <input id="customerAge" class="form-input" type="number" value="${current.age || ""}" placeholder="Age">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gender *</label>
+                    <select id="customerGender" class="form-input">
+                        <option value="Male" ${current.gender === "Male" ? "selected" : ""}>Male</option>
+                        <option value="Female" ${current.gender === "Female" ? "selected" : ""}>Female</option>
+                        <option value="Other" ${current.gender === "Other" ? "selected" : ""}>Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Address *</label>
+                <input id="customerAddress" class="form-input" type="text" value="${current.address || ""}" placeholder="Enter address">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">ID Proof Type *</label>
+                    <input id="customerIdType" class="form-input" type="text" value="${current.idType || ""}" placeholder="e.g., Aadhar / Passport">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ID Number *</label>
+                    <input id="customerIdNumber" class="form-input" type="text" value="${current.idNumber || ""}" placeholder="ID Number">
+                </div>
+            </div>
         </div>
     `;
 
-    const prevButton = bookingStep === 1 ? `<button class="submit-btn secondary" onclick="bookingPrev()" type="button">Back</button>` : `<button class="submit-btn secondary" onclick="bookingPrev()" type="button">Back</button>`;
-    const nextLabel = bookingStep === bookingCustomerCount ? "Confirm Booking" : "Next";
+    const nextLabel = bookingStep === bookingCustomerCount ? "✓ Confirm Booking" : "Next →";
 
     actions.innerHTML = `
-        ${prevButton}
-        <button class="submit-btn" onclick="bookingNext()" type="button">${nextLabel}</button>
+        <button class="submit-btn secondary" onclick="bookingFormPrev()" type="button">← Back</button>
+        <button class="submit-btn primary" onclick="bookingFormNext()" type="button">${nextLabel}</button>
     `;
 }
 
-function bookingPrev() {
+function renderBookingStep() {
+    // Keep this for backward compatibility
+    renderBookingFormStep();
+}
+
+function bookingFormPrev() {
     if (bookingStep === 0) {
-        closeBookingModal();
+        closeBookingForm();
         return;
     }
     bookingStep = Math.max(0, bookingStep - 1);
-    renderBookingStep();
+    renderBookingFormStep();
 }
 
-function bookingNext() {
+function bookingFormNext() {
     if (bookingStep === 0) {
         bookingCustomerCount = Number(document.getElementById("customerCount").value) || 1;
         bookingCustomers = Array.from({ length: bookingCustomerCount }, (_, index) => bookingCustomers[index] || {
@@ -769,7 +1089,7 @@ function bookingNext() {
             idNumber: ""
         });
         bookingStep = 1;
-        renderBookingStep();
+        renderBookingFormStep();
         return;
     }
 
@@ -781,7 +1101,7 @@ function bookingNext() {
     const idNumber = document.getElementById("customerIdNumber").value.trim();
 
     if (!name || !age || !gender || !address || !idType || !idNumber) {
-        alert("Please complete all customer details.");
+        alert("Please complete all guest details.");
         return;
     }
 
@@ -789,7 +1109,7 @@ function bookingNext() {
 
     if (bookingStep < bookingCustomerCount) {
         bookingStep += 1;
-        renderBookingStep();
+        renderBookingFormStep();
         return;
     }
 
@@ -812,15 +1132,15 @@ async function submitRoomBooking() {
             })
         });
 
-        closeBookingModal();
+        closeBookingForm();
         await loadRooms();
         if (window.location.pathname.includes("dashboard.html")) {
             loadDashboard();
         }
-        alert("Room booked successfully. Status updated.");
+        showPageMessage("Room booked successfully. Status updated.");
     } catch (error) {
         console.error("Booking failed:", error);
-        alert(error.message || "Unable to complete booking.");
+        showPageMessage(error.message || "Unable to complete booking.", "error");
     }
 }
 

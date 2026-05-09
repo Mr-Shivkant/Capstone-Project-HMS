@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Check In / Out</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,28 +13,38 @@
 <div class="sidebar">
     <h3>Menu</h3>
     <ul>
-        <li onclick="go('dashboard.html')">🏠 Dashboard</li>
-        <li onclick="go('availability.html')">🛏️ Check Availability</li>
-        <li onclick="go('rooms.html')">🛏️ Rooms</li>
-        <li onclick="go('checkinout.html')">🔑 Check In/Out</li>
-        <li onclick="go('staff.html')">👨‍💼 Staff</li>
-        <li onclick="go('reports.html')">📊 Reports</li>
-        <li onclick="go('logout.html')">🚪 Logout</li>
+        <li onclick="go('dashboard.html')"><i class="fas fa-home"></i> Dashboard</li>
+        <li onclick="go('availability.html')"><i class="fas fa-bed"></i> Check Availability</li>
+        <li onclick="go('rooms.html')"><i class="fas fa-calendar-check"></i> Book Room</li>
+        <li onclick="go('checkinout.html')"><i class="fas fa-key"></i> Check In/Out</li>
+        <li onclick="go('staff.html')"><i class="fas fa-users"></i> Staff</li>
+        <li onclick="go('reports.html')"><i class="fas fa-chart-bar"></i> Reports</li>
+        <li onclick="go('logout.html')"><i class="fas fa-sign-out-alt"></i> Logout</li>
     </ul>
 </div>
 
 <div class="main">
 
-    <div class="form-card">
-        <h2>🔑 Check In / Check Out</h2>
+    <div class="checkinout-container">
+        <div class="page-header">
+            <div>
+                <h2>🔑 Check In / Check Out Management</h2>
+                <p>Manage guest check-ins and check-outs with ease</p>
+            </div>
+            <button class="submit-btn primary" onclick="printBookings()">🖨️ Print All Bookings</button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="bookingSearch" placeholder="🔍 Search by room number..." oninput="filterBookings()">
+        </div>
 
         <div id="bookingList" class="booking-grid"></div>
-
     </div>
 
 </div>
 
 <script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
