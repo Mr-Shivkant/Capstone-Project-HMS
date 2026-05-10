@@ -394,6 +394,11 @@ let filteredReportBookings = [];
 
 async function loadReportBookings() {
     reportBookings = await fetchJson("/bookings");
+    reportBookings.sort((a, b) => {
+        const aDate = new Date(a.createdAt || a.checkInTime || a.updatedAt).getTime();
+        const bDate = new Date(b.createdAt || b.checkInTime || b.updatedAt).getTime();
+        return bDate - aDate;
+    });
     filteredReportBookings = [...reportBookings];
     renderReportTable(filteredReportBookings);
 }
@@ -418,7 +423,7 @@ function renderReportTable(bookings) {
                 <td>${booking.status}</td>
                 <td>${checkIn}</td>
                 <td>${checkOut}</td>
-                <td><a class="submit-btn secondary" href="report-view.html?id=${booking._id}">View</a></td>
+                <td><a class="submit-btn view-btn" href="report-view.html?id=${booking._id}"><i class="fas fa-receipt"></i> View</a></td>
             </tr>
         `;
     }).join("");
@@ -532,16 +537,29 @@ async function loadReportDetail() {
 
         container.innerHTML = `
             <div class="detail-section">
-                <h3>Room ${booking.roomNumber} Details</h3>
-                <p><strong>Status:</strong> ${booking.status || "N/A"}</p>
-                <p><strong>Booked On:</strong> ${createdLabel}</p>
-                <p><strong>Check-In Time:</strong> ${checkInLabel}</p>
-                <p><strong>Check-Out Time:</strong> ${checkOutLabel}</p>
-                <p><strong>Total Guests:</strong> ${customers.length}</p>
+                <div class="receipt-grid">
+                    <div class="receipt-card">
+                        <h3>Booking Summary</h3>
+                        <div class="receipt-row"><span>Booking ID</span><strong>${booking._id ? booking._id.slice(-8).toUpperCase() : "N/A"}</strong></div>
+                        <div class="receipt-row"><span>Room Number</span><strong>${booking.roomNumber || "N/A"}</strong></div>
+                        <div class="receipt-row"><span>Status</span><strong>${booking.status || "N/A"}</strong></div>
+                        <div class="receipt-row"><span>Total Guests</span><strong>${customers.length}</strong></div>
+                    </div>
+                    <div class="receipt-card">
+                        <h3>Booking Dates</h3>
+                        <div class="receipt-row"><span>Booked On</span><strong>${createdLabel}</strong></div>
+                        <div class="receipt-row"><span>Check-In</span><strong>${checkInLabel}</strong></div>
+                        <div class="receipt-row"><span>Check-Out</span><strong>${checkOutLabel}</strong></div>
+                        <div class="receipt-row"><span>Reference</span><strong>${booking.reference || "N/A"}</strong></div>
+                    </div>
+                </div>
             </div>
             <div class="detail-section">
-                <h3>Customer Details</h3>
-                ${customersHtml}
+                <h3>Guest Details</h3>
+                <div class="customers-grid">${customersHtml}</div>
+            </div>
+            <div class="detail-section receipt-notes">
+                <p><strong>Important:</strong> Please bring a valid photo ID at check-in and contact the front desk for any reservation changes. This booking detail is formatted as a guest receipt.</p>
             </div>
         `;
     } catch (error) {
@@ -553,6 +571,62 @@ async function loadReportDetail() {
             </div>
         `;
     }
+}
+
+function printReportDetail() {
+    const content = document.getElementById("reportDetailContent");
+    if (!content) {
+        alert("Booking details are not available to print.");
+        return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert('Unable to open print window. Please allow popups for this site.');
+        return;
+    }
+
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Booking Detail Print</title>
+            <style>
+                *, *::before, *::after { box-sizing: border-box; }
+                body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #111827; font-size: 12px; }
+                .print-area { width: 100%; max-width: 76mm; min-height: 100vh; margin: 0 auto; background: #ffffff; padding: 12px 10px; }
+                .print-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px; margin-bottom: 14px; }
+                .print-header h1 { margin: 0; font-size: 18px; }
+                .print-header p { margin: 4px 0 0; color: #4b5563; font-size: 10px; }
+                .receipt-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+                .receipt-card { background: transparent; border: none; border-bottom: 1px dashed #d1d5db; padding-bottom: 10px; }
+                .receipt-card h3 { margin: 0 0 8px; font-size: 14px; }
+                .receipt-row { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 8px; font-size: 11px; color: #374151; }
+                .receipt-row strong { color: #111827; font-size: 12px; }
+                .customers-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+                .customer-card { background: transparent; border: none; padding: 0; }
+                .customer-card h4 { margin: 0 0 6px; font-size: 13px; color: #111827; }
+                .customer-card p { margin: 4px 0; font-size: 11px; color: #374151; }
+                .receipt-notes { background: transparent; border: none; padding: 0; font-size: 10px; color: #374151; margin-top: 12px; }
+                .signature-block { display: block; margin-top: 18px; }
+                .signature-line { width: 100%; height: 1px; background: #9ca3af; margin-top: 12px; }
+                @page { size: 80mm auto; margin: 4mm; }
+                @media print {
+                    body { background: #fff; }
+                    .print-area { box-shadow: none; border-radius: 0; padding: 4mm 3mm; }
+                    .receipt-card, .customer-card, .receipt-notes { page-break-inside: avoid; }
+                    .receipt-row { font-size: 11px; }
+                    .receipt-card h3 { font-size: 12px; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-area">${content.innerHTML}</div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
 }
 
 async function loadStaffDetail() {
